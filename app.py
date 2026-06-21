@@ -9,10 +9,7 @@ st.set_page_config(
     page_icon=constants.PATH_ASSET_LOGO,
     initial_sidebar_state="expanded",
     menu_items={
-        # TODO: add about info (and repo link)
-        "Get Help": "https://placecats.com/1920/108?fit=fill",
-        "Report a bug": "https://placecats.com/1920/108?fit=fill",
-        "About": "# This is a header. This is an *extremely* cool app!"
+        "Report a bug": "https://github.com/janus-browser/janus-browser/issues",
     },
     layout="wide",
 )

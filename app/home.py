@@ -81,11 +81,11 @@ st.markdown("""
     scores are precalculated from AIUPred, flDPnn, and Metapredict v3 and known
     patterns are retreived and stored from the above mentioned sources.
 
-    Use the <a href="browser" target="_self" rel="noreferrer">Browser</a> page
+    Use the <a href="/tf_browser" target="_self" rel="noreferrer">Browser</a> page
     to explore the available TFs and their characteristics, or jump straight
     into the viewer for an in-depth look at a specific TF.
 
-    More details can be found in the <a href="about" target="_self"
+    More details can be found in the <a href="/about" target="_self"
     rel="noreferrer">About</a> page.
 """, unsafe_allow_html=True)
 
