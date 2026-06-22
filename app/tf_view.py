@@ -140,14 +140,15 @@ with st.expander("Score Plots", icon=":material/area_chart:", expanded=True):
         key="scoresToDisplay",
     )
 
-    # TODO: also add sequence in x axis
+    # TODO: also add dbd graph
     fig = graph.create_scores_plotly(
-        length=len(tf_sequence),
+        sequence=tf_sequence,
         scores_list=[
             graph.make_score_renderable(score_name, tf_disorder_scores)
             for score_name in score_cols
             if score_name in display_scores
         ],
+        dbd_ranges={}, # TODOe, # type:ignore TODO:
         disprot_regions=tf_disprot_regions,
     )
     st.plotly_chart(fig)
@@ -155,7 +156,6 @@ with st.expander("Score Plots", icon=":material/area_chart:", expanded=True):
 #endregion
 
 #region Disprot regions
-# TODO: add other columns from the disprot df
 with st.expander("DisProt regions for selected TF", icon=":material/error_med:"):
     if tf_disprot_regions.empty:
         st.write("No DisProt regions found for this TF.")
@@ -163,7 +163,7 @@ with st.expander("DisProt regions for selected TF", icon=":material/error_med:")
     else:
         st.subheader(f"DisProt regions in [{tf_disprot_id}](https://disprot.org/{tf_disprot_id})", anchor=False)
         st.table(
-            pd.concat({
+            data=pd.concat({
                 "Region ID": (tf_disprot_regions["Region_Id"].apply(lambda x: f"[{x}](https://disprot.org/{x})")),
                 "Start-End": (tf_disprot_regions["Start"].astype(str) + "-" + tf_disprot_regions["End"].astype(str)),
                 "Term Namespace": (tf_disprot_regions["Term_Namespace"].astype(str)),
@@ -179,15 +179,8 @@ with st.expander("DisProt regions for selected TF", icon=":material/error_med:")
 
 #region Matches
 
-# NOTE: We'll NOT remove patterns with only 1 match, since that pattern might
+# ? NOTE: We'll NOT remove patterns with only 1 match, since that pattern might
 # have more matches in other TFs as well.
-
-# patterns_reqd = tf_matches[tf_matches.groupby("Regex")["ELM_Acc"].transform("count") > 1]
-# patterns_reqd = (
-#     patterns_reqd
-#         .groupby(["ELM_Acc", "Regex", "Matched_Sequence"], as_index=False)
-#         .first()
-# )
 
 with st.expander("Matches in ELM Patterns for selected TF", icon=":material/view_timeline:"):
     st.info("Click on a column name (e.g. “Start”) to sort.", icon=":material/info:")

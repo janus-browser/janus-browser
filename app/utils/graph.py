@@ -70,30 +70,38 @@ def make_score_renderable(score_name: ScoreName, df: pd.DataFrame) -> Score | No
         fillcolor=result_template.fillcolor,
     )
 
-def create_scores_plotly(length: int, scores_list: list[Score | None], disprot_regions: pd.DataFrame):
+def create_scores_plotly(sequence: str, scores_list: list[Score | None], dbd_ranges: dict[str, list[tuple[int, int]]], disprot_regions: pd.DataFrame):
     """
     Create a Plotly Figure for plotting the given list of scores.
 
-    :param int length: length of the sequence (for x axis max value)
+    :param str sequence: the sequence to plot (for x-axis labels)
     :param list[Score|None] scores_list: list of scores you wanna plot. `None`s are skipped.
+    :param dict[str, list[tuple[int, int]]] dbd_ranges: dict mapping genus numbers to lists of (start, end) tuples 1-based inclusive coordinates.
     :param pd.DataFrame disprot_regions: df with columns: `Region_Id`, `Start`, `End`
     """
 
-    x = np.arange(0, length)
+    length = len(sequence)
+    x = np.arange(1, length + 1)
 
     scores = [s for s in scores_list if s is not None]
+    is_disprot_available = len(disprot_regions) > 0
 
     # MARK: Initialize plot
     fig = make_subplots(
-        rows=len(scores) + 1,
+        rows=len(scores) + (1 if is_disprot_available else 0) + 1,
         cols=1,
         shared_xaxes=True,
         vertical_spacing=(0.3 / len(scores)),  # less spacing if no score rows
         row_heights=[
-            *([5] * len(scores)),  # weight `5` for each big graph
-            1,  # weight `1` for disprot bar TODO: Add more 1's if youre adding more fragment bars
+            *([10] * len(scores)),  # weight `10` for each big graph
+            *([1] if is_disprot_available else []),  # small weight for DisProt row if it exists
+            2,
         ],
-        subplot_titles=[s.name for s in scores] + ["Disprot"],
+        subplot_titles=[
+            *[s.name for s in scores],
+            *(["Disprot"] if is_disprot_available else []),
+            # "Sequence",
+        ],
     )
 
     # MARK: Plot each score
@@ -110,9 +118,7 @@ def create_scores_plotly(length: int, scores_list: list[Score | None], disprot_r
             go.Scatter(
                 x=x,
                 y=score_values,
-                name=score_name,
-                mode="lines",
-                line=dict(color=color, width=2),
+                name=score_name, mode="lines", line=dict(color=color, width=2),
             ),
             row=row,
             col=1,
@@ -123,10 +129,7 @@ def create_scores_plotly(length: int, scores_list: list[Score | None], disprot_r
             go.Scatter(
                 x=x,
                 y=np.repeat(threshold, length),
-                mode="lines",
-                line=dict(width=0),
-                showlegend=False,
-                hoverinfo="skip",
+                mode="lines", line=dict(width=0), showlegend=False, hoverinfo="skip",
             ),
             row=row,
             col=1,
@@ -136,13 +139,8 @@ def create_scores_plotly(length: int, scores_list: list[Score | None], disprot_r
             go.Scatter(
                 x=x,
                 y=np.clip(score_values, a_min=threshold, a_max=None),
-                mode="lines",
                 name="Aiupred Score",
-                line=dict(color=color, width=0),
-                fill="tonexty",
-                fillcolor=fillcolor,
-                showlegend=False,
-                hoverinfo="skip",
+                mode="lines", line=dict(color=color, width=0), fill="tonexty", fillcolor=fillcolor, showlegend=False, hoverinfo="skip",
             ),
             row=row,
             col=1,
@@ -159,11 +157,11 @@ def create_scores_plotly(length: int, scores_list: list[Score | None], disprot_r
             col=1,
         )
 
-    # MARK: Add DisProt bars
-    disprot_mask = np.zeros(length, dtype=bool)
+    # MARK: TODO: Add DBD Ranges bars
 
-    if len(disprot_regions):
-        # DisProt track (bottom row) + build mask for overlaps
+    # MARK: Add DisProt bars
+    if is_disprot_available: # DisProt track (bottom row) + build mask for overlaps
+        disprot_mask = np.zeros(length, dtype=bool)
         for i, (region_id, start, end) in enumerate(disprot_regions[["Region_Id", "Start", "End"]].itertuples(index=False, name=None)):
             start = max(0, int(start))
             end = min(length - 1, int(end))
@@ -179,7 +177,7 @@ def create_scores_plotly(length: int, scores_list: list[Score | None], disprot_r
                     mode="lines",
                     name="Disprot",
                     line=dict(color="red", width=15),
-                    hoverinfo="skip",
+                    # hoverinfo="skip",
                     hovertemplate=f"{region_id}<br>Start: {start}<br>End: {end}<extra></extra>",
                     showlegend=(i == 0),
                 ),
@@ -239,18 +237,51 @@ def create_scores_plotly(length: int, scores_list: list[Score | None], disprot_r
                     col=1,
                 )
 
+    # MARK: Sequence axis (AA residues + position ticks)
+    fig.add_trace(
+        go.Scatter(
+            x=np.arange(1, length + 1),
+            y=[0] * length,
+            mode="text",
+            line=dict(color="red"),
+            text=list(sequence),
+            hoverinfo="skip",
+            hovertemplate=f"Residue: %{{text}}<extra></extra>",
+        ),
+        row=len(scores) + (1 if is_disprot_available else 0) + 1,
+        col=1,
+    )
+    fig.update_yaxes(
+        showticklabels=False,
+        showgrid=False,
+        zeroline=False,
+        title_text="Residues",
+        title_font=dict(size=12, color="grey"),
+        title_standoff=0,
+        showline=True,
+        linewidth=1,
+        range=[-0.5, 0.5],
+        fixedrange=True,
+        row=len(scores) + (1 if is_disprot_available else 0) + 1,
+        col=1,
+    )
+
     fig.update_xaxes(
         showgrid=False,
         showline=True,
         linewidth=1,
-        row=len(scores) + 1,
+        row=len(scores) + (1 if is_disprot_available else 0) + 1,
         col=1,
     )
 
     # MARK: Overall config
 
     fig.update_layout(
-        height=100 * len(scores),  # Dynamic height based on number of scores
+        height=sum([
+            125 * len(scores),
+            50 if is_disprot_available else 0,
+            50,
+        ]),
         margin=dict(l=40, r=20, t=20, b=20),
         showlegend=False,
         hovermode="x unified",
@@ -260,6 +291,6 @@ def create_scores_plotly(length: int, scores_list: list[Score | None], disprot_r
     fig.update_xaxes(
         showspikes=True, spikemode="across", spikesnap="cursor", spikethickness=1
     )
-    fig.update_traces(xaxis=f"x{len(scores) + 1}")
+    # fig.update_traces(xaxis=f"x{len(scores) + 1}")
 
     return fig
