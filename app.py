@@ -4,7 +4,7 @@ from app.utils import constants
 
 #region Config
 st.set_page_config(
-    page_title="Janus",
+    page_title=constants.APP_NAME,
     # page_title="...",
     page_icon=constants.PATH_ASSET_LOGO,
     initial_sidebar_state="expanded",
@@ -28,6 +28,3 @@ pages = [
 ]
 pages = st.navigation(pages, position="top")
 pages.run()
-
-# TODO: Comparison page for comparing multiple TFs
-# TODO: Filtering Algo for Patterns

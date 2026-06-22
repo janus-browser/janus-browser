@@ -10,7 +10,7 @@ from app.utils import graph
 
 #region Config
 st.set_page_config(
-    page_title="Viewer | Janus",
+    page_title=f"Viewer | {constants.APP_NAME}",
     initial_sidebar_state="expanded",
 )
 #endregion
@@ -47,7 +47,7 @@ tf_genus_num: str = tf_row["Genus_Num"]
 tf_uniprot: str = tf_row["Uniprot_Acc"]
 tf_genus_name: str = tf_row["Genus_Name"]
 tf_sequence: str = sequence_dict[tf_genus_num].Sequence
-st.set_page_config(page_title=f"{tf_genus_name} | Janus")
+st.set_page_config(page_title=f"{tf_genus_name} | {constants.APP_NAME}")
 
 tf_disprot_regions = disprot_df[disprot_df["Uniprot_Acc"] == tf_uniprot]
 tf_disprot_id = tf_disprot_regions.iloc[0]["Disprot_Id"] if not tf_disprot_regions.empty else "N/A"
@@ -101,9 +101,6 @@ with st.expander("Sequence", icon=":material/genetics:", expanded=True):
             mime="text/plain"
         )
     st.code(sequence_fasta, language="plaintext", line_numbers=False, wrap_lines=False)
-
-    # TODO: weblogo
-    # sigh
 
 #endregion
 

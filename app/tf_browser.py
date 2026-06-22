@@ -7,7 +7,7 @@ from app.utils import helper
 
 #region Config
 st.set_page_config(
-    page_title="TF Browser | Janus",
+    page_title=f"TF Browser | {constants.APP_NAME}",
     initial_sidebar_state="expanded",
 )
 
@@ -17,7 +17,7 @@ with st.sidebar:
 st.html(f"""
 <h1 align="center" style="font-size: 48px;">
     <img src="{constants.ASSET_LOGO_DATAURI}" alt="" width="64" height="64"/>
-    Janus TF Browser
+    TF Browser | {constants.APP_NAME}
 </h1>
 """)
 st.caption("Browse and filter human transcription factors", text_alignment="center")

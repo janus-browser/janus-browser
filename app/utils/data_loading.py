@@ -115,11 +115,11 @@ class TFInfo(NamedTuple):
 def __load_fasta() -> dict[str, TFInfo]:
     """Load the FASTA file and return a mapping from UniProt accession to sequence."""
     sequence_dict = {}
-    with open(constants.PATH_DATA.TF_FASTA) as handle:
+    with open(constants.PATH_DATA.TF_FASTA, encoding="utf-8") as handle:
         records = list(FastaIterator(handle))
 
     for record in records:
-        genus_num, uniprot_acc, genus_name = str(record.description + "__").split("_", maxsplit=2)[:3]
+        genus_num, uniprot_acc, genus_name = str(record.description + "__").split("_", maxsplit=3)[:3]
         sequence_dict[genus_num] = TFInfo(
             Uniprot_Acc=uniprot_acc,
             Genus_Name=genus_name,

@@ -8,7 +8,7 @@ from app.utils import graph
 
 #region Config
 st.set_page_config(
-    page_title="Viewer | Janus",
+    page_title=f"Compare | {constants.APP_NAME}",
     initial_sidebar_state="expanded",
 )
 #endregion

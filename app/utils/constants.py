@@ -13,6 +13,10 @@ from dotenv import load_dotenv
 
 # ============================================================================ #
 
+# Don't include "Browser" suffix here
+APP_NAME = "TF-DISCO"
+"""The name of the application, used for page titles and other places."""
+
 PATH_ROOT = Path(__file__).parents[2]
 """Path to the root of project."""
 
@@ -23,15 +27,18 @@ load_dotenv(PATH_ROOT / ".env")
 __DATASET_PATH_OVERRIDE = getenv("DATASET_PATH_OVERRIDE")
 ENV_DATASET_PATH_OVERRIDE = (PATH_ROOT / __DATASET_PATH_OVERRIDE).resolve() if __DATASET_PATH_OVERRIDE else None
 
+__MUSCLE_PATH = getenv("MUSCLE_PATH")
+ENV_MUSCLE_PATH = (PATH_ROOT / __MUSCLE_PATH).resolve() if __MUSCLE_PATH else None
+
 #endregion
 
 
 #region Page paths
 PATH_ASSET_LOGO = PATH_ROOT / "assets/logo.png"
-"""Path to the Janus logo, 534x534."""
+"""Path to the logo, 534x534."""
 
 ASSET_LOGO_DATAURI = f"data:image/png;base64,{b64encode(PATH_ASSET_LOGO.read_bytes()).decode('utf-8')}"
-"""Data URI for the Janus logo, used for embedding the logo in markdown."""
+"""Data URI for the logo, used for embedding the logo in markdown."""
 
 PATH_PAGE_HOME = PATH_ROOT / "app/home.py"
 """Path to the **Home** page."""

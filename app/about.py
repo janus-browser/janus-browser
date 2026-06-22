@@ -6,7 +6,7 @@ from app.utils import constants
 
 #region Config
 st.set_page_config(
-    page_title="Janus | About",
+    page_title=f"About | {constants.APP_NAME}",
     initial_sidebar_state="collapsed",
 )
 
@@ -16,7 +16,7 @@ st.html(f"""
 <h1 align="center" style="font-size: 48px;">
     About
     <img src="{constants.ASSET_LOGO_DATAURI}" alt="" width="64" height="64"/>
-    Janus!
+    {constants.APP_NAME}!
 </h1>
 """)
 st.caption("A Consolidated Database of Human Transcription Factors Information", text_alignment="center")
@@ -24,9 +24,9 @@ st.caption("A Consolidated Database of Human Transcription Factors Information",
 st.divider()
 
 #region Details
-st.header(":material/info: What is Janus?", anchor=False)
-st.markdown("""
-    Janus is a comprehensive database and visualization tool for human
+st.header(f":material/info: What is {constants.APP_NAME}?", anchor=False)
+st.markdown(f"""
+    {constants.APP_NAME} is a comprehensive database and visualization tool for human
     transcription factors (TFs). It integrates data from multiple sources,
     including [UniProt](https://www.uniprot.org),
     [DisProt](https://disprot.org), and the [ELM Resource](http://elm.eu.org),
