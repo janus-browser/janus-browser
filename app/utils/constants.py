@@ -71,6 +71,9 @@ class PathData:
     TFCLASSES: Path
     """Path to the TFClasses dataset."""
 
+    TF_DBD_RANGES: Path
+    """Path to the TSV file containing DBD regions for each TF."""
+
     TF_FASTA: Path
     """Path to the FASTA file containing all TF sequences."""
 
@@ -91,6 +94,7 @@ class PathData:
         """Re-initialize paths to Data files, with the provided base directory."""
         self.DISPROT = base_dir / "disprot_data.tsv"
         self.TFCLASSES = base_dir / "tfclasses.tsv"
+        self.TF_DBD_RANGES = base_dir / "dbd_ranges.tsv"
         self.TF_FASTA = base_dir / "tfs_fasta/tfs_all.fasta"
         self.TFS_DISORDER = base_dir / "tfs_metrics/"
         self.TF_PATTERNS = base_dir / "patterns.tsv"

@@ -60,6 +60,7 @@ def __load_disprot_tfclasses_dfs() -> tuple[pd.DataFrame, pd.DataFrame, dict[str
 
     tfclasses_df = pd.read_csv(constants.PATH_DATA.TFCLASSES, sep="\t")
     disprot_df = pd.read_csv(constants.PATH_DATA.DISPROT, sep="\t")
+    dbd_ranges_df = pd.read_csv(constants.PATH_DATA.TF_DBD_RANGES, sep="\t")
 
     disprot_df = disprot_df.sort_values(by=["Uniprot_Acc", "Start", "End"], ascending=True).reset_index(drop=True)
 
@@ -86,13 +87,21 @@ def __load_disprot_tfclasses_dfs() -> tuple[pd.DataFrame, pd.DataFrame, dict[str
     # 4. create new column "Disprot_Perc"
     tfclasses_df = tfclasses_df.merge(
         (disprot_df[["Uniprot_Acc", "Start", "End"]]
-         .groupby("Uniprot_Acc")
-         .apply(lambda regions: helper.calculate_disprot_perc(regions, seq_len=tfclasses_df[tfclasses_df["Uniprot_Acc"]==regions.name].iloc[0]["Length"])) # regions.name is a thing apparently
-         .rename("Disprot_Perc")
+            .groupby("Uniprot_Acc")
+            .apply(lambda regions: helper.calculate_disprot_perc(regions, seq_len=tfclasses_df[tfclasses_df["Uniprot_Acc"]==regions.name].iloc[0]["Length"])) # regions.name is a thing apparently
+            .rename("Disprot_Perc")
         ),
         how="left",
         on="Uniprot_Acc",
     )
+
+    # 5. merge DBD ranges into tfclasses_df
+    tfclasses_df = tfclasses_df.merge(
+        dbd_ranges_df[["Genus_Num", "Dbd_Range"]],
+        how="left",
+        on="Genus_Num",
+    )
+    tfclasses_df["Dbd_Range"] = tfclasses_df["Dbd_Range"].fillna("")
 
     tfclasses_df = tfclasses_df.reset_index(drop=True)
 

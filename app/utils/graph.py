@@ -70,13 +70,13 @@ def make_score_renderable(score_name: ScoreName, df: pd.DataFrame) -> Score | No
         fillcolor=result_template.fillcolor,
     )
 
-def create_scores_plotly(sequence: str, scores_list: list[Score | None], dbd_ranges: dict[str, list[tuple[int, int]]], disprot_regions: pd.DataFrame):
+def create_scores_plotly(sequence: str, scores_list: list[Score | None], dbd_ranges: list[tuple[int, int]], disprot_regions: pd.DataFrame):
     """
     Create a Plotly Figure for plotting the given list of scores.
 
     :param str sequence: the sequence to plot (for x-axis labels)
     :param list[Score|None] scores_list: list of scores you wanna plot. `None`s are skipped.
-    :param dict[str, list[tuple[int, int]]] dbd_ranges: dict mapping genus numbers to lists of (start, end) tuples 1-based inclusive coordinates.
+    :param list[tuple[int, int]] dbd_ranges: list of (start, end) tuples 1-based inclusive coordinates for the DBD range.
     :param pd.DataFrame disprot_regions: df with columns: `Region_Id`, `Start`, `End`
     """
 
@@ -88,18 +88,20 @@ def create_scores_plotly(sequence: str, scores_list: list[Score | None], dbd_ran
 
     # MARK: Initialize plot
     fig = make_subplots(
-        rows=len(scores) + (1 if is_disprot_available else 0) + 1,
+        rows=len(scores) + (1 if is_disprot_available else 0) + (1 if dbd_ranges else 0) + 1,
         cols=1,
         shared_xaxes=True,
         vertical_spacing=(0.3 / len(scores)),  # less spacing if no score rows
         row_heights=[
             *([10] * len(scores)),  # weight `10` for each big graph
             *([1] if is_disprot_available else []),  # small weight for DisProt row if it exists
+            *([1] if dbd_ranges else []),  # small weight for DBD Ranges row if it exists
             2,
         ],
         subplot_titles=[
             *[s.name for s in scores],
             *(["Disprot"] if is_disprot_available else []),
+            *(["DBD Ranges"] if dbd_ranges else []),
             # "Sequence",
         ],
     )
@@ -158,6 +160,42 @@ def create_scores_plotly(sequence: str, scores_list: list[Score | None], dbd_ran
         )
 
     # MARK: TODO: Add DBD Ranges bars
+    if dbd_ranges:
+        for i, (start, end) in enumerate(dbd_ranges):
+            start = max(1, int(start))
+            end = min(length, int(end))
+            if end < start:
+                continue
+
+            xs = list(range(start, end + 1))
+            fig.add_trace(
+                go.Scatter(
+                    x=xs,
+                    y=[0] * len(xs),
+                    mode="lines",
+                    name="DBD Range",
+                    line=dict(color="blue", width=15),
+                    hovertemplate=f"DBD Range {i+1}<br>Start: {start}<br>End: {end}<br>Position: %{{x}}<extra></extra>",
+                    showlegend=(i == 0),
+                ),
+                row=len(scores) + (1 if is_disprot_available else 0) + 1,
+                col=1,
+            )
+
+        fig.update_yaxes(
+            showticklabels=False,
+            showgrid=False,
+            zeroline=False,
+            title_text="DBD Ranges",
+            title_font=dict(size=12, color="grey"),
+            title_standoff=0,
+            showline=True,
+            linewidth=1,
+            range=[-0.1, 0.1],
+            fixedrange=True,
+            row=len(scores) + (1 if is_disprot_available else 0) + 1,
+            col=1,
+        )
 
     # MARK: Add DisProt bars
     if is_disprot_available: # DisProt track (bottom row) + build mask for overlaps
@@ -248,9 +286,10 @@ def create_scores_plotly(sequence: str, scores_list: list[Score | None], dbd_ran
             hoverinfo="skip",
             hovertemplate=f"Residue: %{{text}}<extra></extra>",
         ),
-        row=len(scores) + (1 if is_disprot_available else 0) + 1,
+        row=len(scores) + (1 if is_disprot_available else 0) + 1 + (1 if dbd_ranges else 0),
         col=1,
     )
+
     fig.update_yaxes(
         showticklabels=False,
         showgrid=False,
@@ -262,7 +301,7 @@ def create_scores_plotly(sequence: str, scores_list: list[Score | None], dbd_ran
         linewidth=1,
         range=[-0.5, 0.5],
         fixedrange=True,
-        row=len(scores) + (1 if is_disprot_available else 0) + 1,
+        row=len(scores) + (1 if is_disprot_available else 0) + 1 + (1 if dbd_ranges else 0),
         col=1,
     )
 
@@ -270,16 +309,16 @@ def create_scores_plotly(sequence: str, scores_list: list[Score | None], dbd_ran
         showgrid=False,
         showline=True,
         linewidth=1,
-        row=len(scores) + (1 if is_disprot_available else 0) + 1,
+        row=len(scores) + (1 if is_disprot_available else 0) + 1 + (1 if dbd_ranges else 0),
         col=1,
     )
 
     # MARK: Overall config
-
     fig.update_layout(
         height=sum([
             125 * len(scores),
             50 if is_disprot_available else 0,
+            50 if dbd_ranges else 0,
             50,
         ]),
         margin=dict(l=40, r=20, t=20, b=20),
@@ -291,6 +330,4 @@ def create_scores_plotly(sequence: str, scores_list: list[Score | None], dbd_ran
     fig.update_xaxes(
         showspikes=True, spikemode="across", spikesnap="cursor", spikethickness=1
     )
-    # fig.update_traces(xaxis=f"x{len(scores) + 1}")
-
     return fig

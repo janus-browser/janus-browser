@@ -46,6 +46,7 @@ if ("genus_num" not in st.query_params) or (tf_row is None):
 tf_genus_num: str = tf_row["Genus_Num"]
 tf_uniprot: str = tf_row["Uniprot_Acc"]
 tf_genus_name: str = tf_row["Genus_Name"]
+tf_dbd_range: str = tf_row["Dbd_Range"]
 tf_sequence: str = sequence_dict[tf_genus_num].Sequence
 st.set_page_config(page_title=f"{tf_genus_name} | {constants.APP_NAME}")
 
@@ -55,6 +56,9 @@ tf_disprot_id = tf_disprot_regions.iloc[0]["Disprot_Id"] if not tf_disprot_regio
 tf_disorder_scores = data_loading.load_disorder_scores(tf_genus_num)
 
 tf_matches = matches_df[matches_df["Genus_Num"] == tf_genus_num]
+
+# Parse the DBD range string into a list of (start, end) tuples (used for pltting in the graph)
+tf_dbd_range_list = helper.parse_dbd_ranges(tf_dbd_range)
 """Matches occurring ONLY in this TF."""
 
 #endregion
@@ -65,10 +69,12 @@ with st.sidebar:
 
 # TF metrics cards
 st.header(f"{tf_genus_name}", anchor="selected_tf") #: {tf_genus_num} | {tf_genus_name} | [{tf_uniprot}](https://www.uniprot.org/uniprotkb/{tf_uniprot}/entry)")
-col1, col2, col3 = st.columns(3, border=True)
-col1.metric(":material/link: UniProt Accession", f"**[{tf_uniprot}](https://www.uniprot.org/uniprotkb/{tf_uniprot}/entry)**", help="The unique identifier for this transcription factor in the UniProt database.")
-col2.metric(":material/error_med: DisProt ID", f"**[{tf_disprot_id}](https://disprot.org/{tf_disprot_id})**" if not tf_disprot_regions.empty else "N/A", help="The unique identifier for this transcription factor in the DisProt database. Click the link to view more details about the disordered regions in this TF.")
-col3.metric(":material/straighten: Sequence length", f"**{len(tf_sequence)} residues**", help="The number of amino acids in this transcription factor's sequence.")
+col11, col12 = st.columns(2, border=True)
+col21, col22 = st.columns(2, border=True)
+col11.metric(":material/link: UniProt Accession", f"**[{tf_uniprot}](https://www.uniprot.org/uniprotkb/{tf_uniprot}/entry)**", help="The unique identifier for this transcription factor in the UniProt database.")
+col12.metric(":material/error_med: DisProt ID", f"**[{tf_disprot_id}](https://disprot.org/{tf_disprot_id})**" if not tf_disprot_regions.empty else "N/A", help="The unique identifier for this transcription factor in the DisProt database. Click the link to view more details about the disordered regions in this TF.")
+col21.metric(":material/straighten: Sequence length", f"**{len(tf_sequence)} residues**", help="The number of amino acids in this transcription factor's sequence.")
+col22.metric(":material/format_list_numbered: DBD Range(s)", f"**{tf_dbd_range}**", help="The range of amino acids that correspond to the DNA-binding domain (DBD) of this transcription factor. This is the region that interacts with DNA to regulate gene expression.")
 
 #endregion
 
@@ -140,7 +146,6 @@ with st.expander("Score Plots", icon=":material/area_chart:", expanded=True):
         key="scoresToDisplay",
     )
 
-    # TODO: also add dbd graph
     fig = graph.create_scores_plotly(
         sequence=tf_sequence,
         scores_list=[
@@ -148,7 +153,7 @@ with st.expander("Score Plots", icon=":material/area_chart:", expanded=True):
             for score_name in score_cols
             if score_name in display_scores
         ],
-        dbd_ranges={}, # TODOe, # type:ignore TODO:
+        dbd_ranges=tf_dbd_range_list,
         disprot_regions=tf_disprot_regions,
     )
     st.plotly_chart(fig)
