@@ -208,15 +208,16 @@ def create_scores_plotly(sequence: str, scores_list: list[Score | None], dbd_ran
 
             disprot_mask[start : end + 1] = True
 
+            xs = list(range(start, end + 1))
             fig.add_trace(
                 go.Scatter(
-                    x=[start, end],
-                    y=[0, 0],
+                    x=xs,
+                    y=[0] * len(xs),
                     mode="lines",
                     name="Disprot",
                     line=dict(color="red", width=15),
                     # hoverinfo="skip",
-                    hovertemplate=f"{region_id}<br>Start: {start}<br>End: {end}<extra></extra>",
+                    hovertemplate=f"{region_id}<br>Start: {start}<br>End: {end}<br>Position: %{{x}}<extra></extra>",
                     showlegend=(i == 0),
                 ),
                 row=len(scores) + 1,
