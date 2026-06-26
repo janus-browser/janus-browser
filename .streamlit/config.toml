@@ -7,6 +7,9 @@ magicEnabled = false
 runOnSave = true
 headless = true
 
+[browser]
+gatherUsageStats = false
+
 # ============================================================================
 # Catppuccin Color Palette Theme Configuration for Streamlit
 # Reference: https://docs.streamlit.io/develop/concepts/configuration/theming
