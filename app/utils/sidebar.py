@@ -53,7 +53,7 @@ def render_pattern_summary(pattern_row: pd.Series):
     st.table({
         ":material/regular_expression: Regex": f"`{pattern_row["Regex"]}`",
         ":material/numbers: Expected matches": f"{pattern_row["Expected"]:.2f}",
-        ":material/numbers: Observed matches": pattern_row["Observed"],
+        ":material/numbers: Observed matches": f"{pattern_row['Observed']}",
         ":material/vital_signs: Z-score": f"{pattern_row['ZScore']:.4f}",
         ":material/vital_signs: Log2FC": f"{pattern_row['Log2FC']:.4f}",
     }, border="horizontal", width="content", hide_header=True)
