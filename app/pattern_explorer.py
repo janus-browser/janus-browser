@@ -25,7 +25,7 @@ st.caption("Explore and analyze transcription factor patterns", text_alignment="
 with st.sidebar:
     st.empty()
 
-columns = ["Genus_Num", "Uniprot_Acc", "Genus_Name", "ELM_Acc", "ELM_Id", "Regex"]
+COLUMNS = ["Genus_Num", "Uniprot_Acc", "Genus_Name", "ELM_Acc", "ELM_Id", "Regex"]
 
 #endregion
 
@@ -33,6 +33,7 @@ columns = ["Genus_Num", "Uniprot_Acc", "Genus_Name", "ELM_Acc", "ELM_Id", "Regex
 data = data_loading.init()
 # disprot_df = data.disprot_df
 tfclasses_df = data.tfclasses_df
+# dbd_ranges_df = data.dbd_ranges_df
 # genus_num_name_map = data.genus_num_name_map
 matches_df = data.matches_df
 sequence_dict = data.sequence_dict
@@ -41,18 +42,49 @@ sequence_dict = data.sequence_dict
 
 
 
+#region Cart
 st.session_state["cart"] = st.session_state.get("cart", set())
 cart: set[str] = st.session_state["cart"]
+is_cart_empty = (len(cart) < 1)
+
+with st.sidebar:
+    st.page_link(constants.PATH_PAGE_TF_BROWSER, label=":primary[Go to TF Browser]", icon=":material/arrow_back:", icon_position="left")
+
+    st.header(f":material/shopping_cart: Cart contents (`{len(cart)}` TF{'s' if len(cart) != 1 else ''})", anchor=False)
+
+    filt_to_cart = st.toggle("Filter to Cart items only", value=(not is_cart_empty), help="Only show patterns that occur in the TFs currently in the cart.", disabled=is_cart_empty)
+
+    if not cart:
+        st.info(":material/info: Cart is empty.")
+
+    else:
+        sidebar_cart = tfclasses_df[["Genus_Num", "Uniprot_Acc", "Genus_Name"]][tfclasses_df["Genus_Num"].isin(cart)]
+        sidebar_cart = pd.concat([
+            sidebar_cart["Genus_Num"] + " [:material/article_shortcut:](/tf_view?genus_num=" + sidebar_cart["Genus_Num"] + ")",
+            sidebar_cart["Uniprot_Acc"].apply(lambda acc: f"[{acc}](https://uniprot.org/entry/{acc})"),
+            sidebar_cart["Genus_Name"],
+        ], axis=1).rename({
+            "Genus_Num": "Genus #",
+            "Uniprot_Acc": "UniProt",
+            "Genus_Name": "Genus Name",
+        }, axis=1)
+        sidebar_cart__state = st.table(
+            data=sidebar_cart,
+            height=300 if len(sidebar_cart) > 5 else "content",
+        )
+
+    if not filt_to_cart:
+        st.info(":material/info: The patterns list is currently not filtering by cart, and is showing all TFs.")
+
+#endregion
 
 
 
 with st.expander(f"Select Patterns", expanded=True):
     #region Filter controls
-    is_cart_empty = (len(cart) < 1)
     with st.container(horizontal=True, horizontal_alignment="distribute"):
         with st.container(horizontal=False, horizontal_alignment="left", width="content"):
-            patterns_filt_to_cart = st.toggle("Filter to Cart items only", value=(not is_cart_empty), help="Only show patterns that occur in the TFs currently in the cart.", disabled=is_cart_empty)
-            strictly_in_all_tfs = st.toggle(f"Show patterns that occur in **strictly all** the TFs" + (" in cart" if patterns_filt_to_cart else ""), value=False)
+            strictly_in_all_tfs = st.toggle(f"Show patterns that occur in **strictly all** the TFs" + (" in cart" if filt_to_cart else ""), value=False)
 
         max_penalty_at_20 = helper.render_vagueness_penalty_slider()
     vagueness_penalty_func = patterns.make_vagueness_penalty_func(max_penalty_at_20)
@@ -61,7 +93,7 @@ with st.expander(f"Select Patterns", expanded=True):
 
     #region Patterns list
     matches_filtered = matches_df
-    if patterns_filt_to_cart and cart:
+    if filt_to_cart and cart:
         matches_filtered = matches_filtered[matches_filtered["Genus_Num"].isin(cart)]
 
     if strictly_in_all_tfs:
@@ -76,7 +108,7 @@ with st.expander(f"Select Patterns", expanded=True):
     score_min = patterns_df["Log2FC"].min()
     score_max = patterns_df["Log2FC"].max()
 
-    if patterns_filt_to_cart or strictly_in_all_tfs:
+    if filt_to_cart or strictly_in_all_tfs:
         st.write(f"Displaying `{len(patterns_df)}` out of `{patterns_count_total}` patterns:")
     else:
         st.write(f"Displaying `{patterns_count_total}` patterns:")
@@ -87,7 +119,7 @@ with st.expander(f"Select Patterns", expanded=True):
         "Regex": "Regex",
         "Vagueness": None,
         "Expected": None,
-        "Observed": "Observed matches",
+        "Observed": "Observed matches" + (" (in cart)" if filt_to_cart else ""),
         "ZScore": None,
         "Log2FC": None,
     }
@@ -96,14 +128,22 @@ with st.expander(f"Select Patterns", expanded=True):
         st.warning("No patterns found. Try adding more TFs to the cart, or adjusting the settings above.")
         patterns__sel_row, patterns__sel_elm_acc = None, None
     else:
+        patterns__dependencies = "-".join(map(str, [
+            filt_to_cart,
+            strictly_in_all_tfs,
+            max_penalty_at_20,
+        ]))
         patterns__state = st.dataframe(
             data=patterns_df[list(display_columns)],
+            selection_default={"selection": {"rows":
+                patterns_df.index[patterns_df["ELM_Acc"] == st.query_params.get("elm_acc", None)].tolist()
+            }},
             column_config={
                 **display_columns,
                 # "Log2FC": st.column_config.ProgressColumn(display_columns["Log2FC"], min_value=score_min, max_value=score_max, format="%0.2f"),
             },
-            height="stretch",
             hide_index=True,
+            key=patterns__dependencies,
             selection_mode="single-row",
             on_select="rerun",
         )
@@ -111,69 +151,41 @@ with st.expander(f"Select Patterns", expanded=True):
         patterns__sel_row = patterns_df.iloc[patterns__sel_row_nums[0]] if len(patterns__sel_row_nums) == 1 else None
         patterns__sel_elm_acc = patterns__sel_row["ELM_Acc"] if patterns__sel_row is not None else None
 
+    if patterns__sel_elm_acc:
+        st.query_params["elm_acc"] = patterns__sel_elm_acc
+    else:
+        if "elm_acc" in st.query_params: del st.query_params["elm_acc"]
+
     #endregion
-
-#region Cart
-with st.sidebar:
-    st.page_link(constants.PATH_PAGE_TF_BROWSER, label=":primary[Go to TF Browser]", icon=":material/arrow_back:", icon_position="left")
-
-    st.html(f"""<style>.st-key-sidebar-cart {{opacity: {1 if patterns_filt_to_cart else 0.4};}}</style>""")
-
-    with st.container(key="sidebar-cart"):
-        st.header(":material/shopping_cart: Cart contents")
-        if not cart:
-            st.info(":material/info: Cart is empty.")
-
-        else:
-            st.info(f":material/remove_shopping_cart: Items in cart: {len(cart)}")
-            sidebar_cart = tfclasses_df[["Genus_Num", "Uniprot_Acc", "Genus_Name"]][tfclasses_df["Genus_Num"].isin(cart)]
-            sidebar_cart = pd.concat([
-                sidebar_cart["Genus_Num"] + " [:material/article_shortcut:](/tf_view?genus_num=" + sidebar_cart["Genus_Num"] + ")",
-                sidebar_cart["Uniprot_Acc"].apply(lambda acc: f"[{acc}](https://uniprot.org/entry/{acc})"),
-                sidebar_cart["Genus_Name"],
-            ], axis=1).rename({
-                "Genus_Num": "Genus #",
-                "Uniprot_Acc": "UniProt",
-                "Genus_Name": "Genus Name",
-            }, axis=1)
-            sidebar_cart__state = st.table(
-                data=sidebar_cart,
-                height=300 if len(sidebar_cart) > 5 else "content",
-            )
-
-    if not patterns_filt_to_cart:
-        st.info(":material/info: The patterns list is currently not filtering by cart, and is showing all TFs.")
-
-with st.sidebar:
-    if patterns__sel_row is not None:
-        sidebar.render_pattern_summary(patterns__sel_row)
-
-#endregion
 
 st.divider()
 st.header(":material/regular_expression: Selected pattern", anchor=False)
 
-if patterns__sel_elm_acc is None:
+if patterns__sel_row is None:
     st.warning("No pattern selected. Please select a pattern from the table above to see details here.")
 
 else:
     #region Selected pattern: Overview
     selected_pattern_matches_df: pd.DataFrame = matches_df[matches_df["ELM_Acc"] == patterns__sel_elm_acc]
     selected_pattern_df = (selected_pattern_matches_df
-                                    .groupby(columns)
+                                    .groupby(COLUMNS)
                                     .size()
                                     .sort_values(ascending=False)
                                     .reset_index(name="Observed"))
-    patterns__sel_pattern = selected_pattern_df['Regex'].values[0]
+    patterns__sel_pattern = selected_pattern_df["Regex"].values[0]
+    total_observed_counts = selected_pattern_df["Observed"].sum()
+    if filt_to_cart:
+        selected_pattern_matches_df = selected_pattern_matches_df[selected_pattern_matches_df["Genus_Num"].isin(cart)]
+        selected_pattern_df = selected_pattern_df[selected_pattern_df["Genus_Num"].isin(cart)]
 
-    if len(selected_pattern_df) == 0:
-        st.warning("No matches of this pattern found in the selected TFs. Try selecting a different pattern or adding more TFs to the cart.")
+    with st.sidebar:
+        sidebar.render_pattern_summary(patterns__sel_row)
 
     col1, col2, col3 = st.columns(3)
 
     col1.metric("ELM Accession", f"[{selected_pattern_df['ELM_Acc'].values[0]}](http://elm.eu.org/{selected_pattern_df['ELM_Acc'].values[0]})", border=True, help="The ELM (Eukaryotic Linear Motif) pattern accession number, which uniquely identifies the pattern in the ELM database.")
     col2.metric("ELM ID", f"[{selected_pattern_df['ELM_Id'].values[0]}](http://elm.eu.org/elms/{selected_pattern_df['ELM_Id'].values[0]})", border=True, help="The ELM (Eukaryotic Linear Motif) pattern ID, which uniquely identifies the pattern in the ELM database.")
-    col3.metric("Total Matches", selected_pattern_df["Observed"].sum(), border=True, help="The total number of matches of the pattern across all species.")
+    col3.metric("Total Matches", f"{selected_pattern_df["Observed"].sum()}" + (f" out of {total_observed_counts}" if filt_to_cart else ""), border=True, help="The total number of matches of the pattern across all species.")
 
     @st.fragment()
     def render_alignment_logo():
@@ -211,14 +223,10 @@ else:
     # if cart and sequence_dict:
     with st.expander("Matches in Sequences", expanded=False):
         genus_nums = set(selected_pattern_df["Genus_Num"].unique())
-
-        # show_only_with_matches = st.toggle("Show only sequences with matches", value=True, help="Only show sequences that have at least one match of the selected pattern.")
-        sequences_filt_to_cart = st.toggle("Filter to Cart items only", value=(not is_cart_empty), help="Only show sequences that are currently in the cart.", disabled=is_cart_empty)
-        if sequences_filt_to_cart: genus_nums = genus_nums.intersection(cart)
+        if filt_to_cart: genus_nums = genus_nums.intersection(cart)
+        genus_nums = list(genus_nums)
 
         for genus_num in genus_nums:
-            # if not selected_pattern_df["Genus_Num"].isin([genus_num]).any():
-            #     continue
             tfinfo = sequence_dict.get(genus_num, data_loading.TFInfo(Uniprot_Acc="", Genus_Name="", Sequence=""))
             observed_matches_count = selected_pattern_df[selected_pattern_df["Genus_Num"] == genus_num]["Observed"].sum()
 
@@ -231,9 +239,7 @@ else:
     #endregion
 
     #region Selected pattern: Matches
-
     selected_pattern_df = selected_pattern_df.drop(columns=["Regex", "ELM_Acc", "ELM_Id"])
-
     st.table(
         data=pd.concat({
             "Genus #": (selected_pattern_df["Genus_Num"] + " [:material/article_shortcut:](/tf_view?genus_num=" + selected_pattern_df["Genus_Num"] + ")"),
