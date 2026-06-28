@@ -1,3 +1,5 @@
+from math import ceil
+
 import streamlit as st
 import pandas as pd
 
@@ -73,7 +75,7 @@ with st.sidebar:
             height=300 if len(sidebar_cart) > 5 else "content",
         )
 
-    if not filt_to_cart:
+    if cart and not filt_to_cart:
         st.info(":material/info: The patterns list is currently not filtering by cart, and is showing all TFs.")
 
 #endregion
@@ -187,16 +189,15 @@ else:
     col2.metric("ELM ID", f"[{selected_pattern_df['ELM_Id'].values[0]}](http://elm.eu.org/elms/{selected_pattern_df['ELM_Id'].values[0]})", border=True, help="The ELM (Eukaryotic Linear Motif) pattern ID, which uniquely identifies the pattern in the ELM database.")
     col3.metric("Total Matches", f"{selected_pattern_df["Observed"].sum()}" + (f" out of {total_observed_counts}" if filt_to_cart else ""), border=True, help="The total number of matches of the pattern across all species.")
 
-    @st.fragment()
-    def render_alignment_logo():
+    @st.fragment(parallel=True)
+    def pattern_logo_fragment(sequences: list[str]):
         with st.spinner("Generating logo..."):
-            _, aligned_df = align_logo.run_muscle_alignment(
-                sequences=selected_pattern_matches_df[["Genus_Num", "Start", "End", "Matched_Sequence"]],
-                print_on_error=True,
+            aligned_sequences = align_logo.run_muscle_alignment(
+                sequences=sequences,
             )
-            size = (50 * len(aligned_df["Aligned_Sequence"].iloc[0]), 300)
+            size = (150 * len(aligned_sequences[0]), 400)
             img = align_logo.create_logo(
-                aligned_sequences=aligned_df["Aligned_Sequence"].tolist(),
+                aligned_sequences=aligned_sequences,
                 font_name="serif",
                 size=size,
                 prob_threshold=0.025,
@@ -207,17 +208,17 @@ else:
         with st.container(width=(target_height * img.width) // img.height):
             st.image(img, width="stretch")
 
-    with st.container(width="stretch", horizontal=True, horizontal_alignment="distribute"):
+    with st.container(width="stretch", border=True, horizontal=True, horizontal_alignment="distribute"):
         st.metric(
             "Regex",
             f"`{patterns__sel_pattern}`",
-            border=True,
             help="The regular expression that defines the ELM pattern. This regex is used to search for matches of the pattern in protein sequences. The regex syntax follows standard conventions, where specific characters and symbols represent different types of amino acids or sequence features. For more information on the regex syntax used for ELM patterns, please refer to the [ELM documentation](http://elm.eu.org/infos/help.html)."
         )
-
-        render_alignment_logo()
+        with st.container(width="content"):
+            pattern_logo_fragment(sequences=sorted(selected_pattern_matches_df["Matched_Sequence"].tolist()))
 
     #endregion
+
 
     #region Selected pattern: Matches in sequences
     # if cart and sequence_dict:
