@@ -20,6 +20,15 @@ APP_NAME = "TF-DISCO"
 PATH_ROOT = Path(__file__).parents[2]
 """Path to the root of project."""
 
+def GET_APP_COMMIT_HASH() -> str:
+    """Get the commit hash of the current version of the app."""
+    try:
+        __PATH_HEAD = PATH_ROOT / ".git/HEAD"
+        __HEAD = __PATH_HEAD.read_text().strip() if __PATH_HEAD.exists() else ""
+        return (PATH_ROOT / ".git/" / __HEAD[4:].strip()).read_text().strip() if __HEAD.startswith("ref:") else __HEAD
+    except:
+        return ""
+
 
 #region Environment variables
 if getenv("IS_DOCKER", "0") == "0":
