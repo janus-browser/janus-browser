@@ -137,8 +137,6 @@ default_cols: list[graph.ScoreName] = [
     "Metapredict-Disorder",
 ]
 # persist selection across navigations
-st.session_state["scoresToDisplay"] = st.session_state.get("scoresToDisplay", default_cols)
-
 with st.expander("Score Plots", icon=":material/area_chart:", expanded=True):
     with st.container(horizontal=True, vertical_alignment="center", horizontal_alignment="right"):
         st.subheader("Score Plots", anchor=False)
@@ -159,9 +157,10 @@ with st.expander("Score Plots", icon=":material/area_chart:", expanded=True):
     display_scores = st.pills(
         label="Select scores to display:",
         options=score_cols,
-        default=st.session_state["scoresToDisplay"],
+        default=st.session_state.get("scores_to_display", default_cols),
         selection_mode="multi",
         key="scoresToDisplay",
+        on_change=lambda: st.session_state.update({"scores_to_display": st.session_state["scoresToDisplay"]})
     )
 
     fig = graph.create_scores_plotly(
