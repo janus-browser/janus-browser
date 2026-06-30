@@ -94,13 +94,13 @@ showWidgetBorder = true
 [theme.light]
 # Primary and background colors
 primaryColor = "#04a5e5"                    # Sky
-backgroundColor = "#dce0e8"                 # Crust
-secondaryBackgroundColor = "#ccd0da"        # Surface 0
-textColor = "#4c4f69"                       # Text
+backgroundColor = "#eff1f5"                 # Surface 0
+secondaryBackgroundColor = "#ccd0da"        # Crust
+textColor = "#1e1e2e"                       # Text
 
 # Code and dataframe styling
-codeBackgroundColor = "#eff1f5"             # Crust
-codeTextColor = "#40a02b"                   # Text
+codeBackgroundColor = "#ccd0da"             # Crust
+codeTextColor = "#177003"                   # Text
 dataframeHeaderBackgroundColor = "#bcc0cc"  # Surface 1
 dataframeBorderColor = "#9ca0b0"            # Overlay 0
 
@@ -132,7 +132,7 @@ grayColor = "#9ca0b0"                       # Overlay 0
 primaryColor = "#04a5e5"                    # Sky
 backgroundColor = "#dce0e8"                 # Crust
 secondaryBackgroundColor = "#bcc0cc"        # Surface 1
-textColor = "#4c4f69"                       # Text
+textColor = "#1e1e2e"                       # Text
 borderColor = "#9ca0b0"                     # Overlay 0
 showWidgetBorder = true
 
