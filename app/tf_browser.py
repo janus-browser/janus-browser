@@ -16,8 +16,9 @@ with st.sidebar:
 
 st.html(f"""
 <h1 align="center" style="font-size: 48px;">
+    TF Browser |
     <img src="{constants.ASSET_LOGO_DATAURI}" alt="" width="64" height="64"/>
-    TF Browser | {constants.APP_NAME}
+    {constants.APP_NAME}
 </h1>
 """)
 st.caption("Browse and filter transcription factors", text_alignment="center")
@@ -159,18 +160,5 @@ with st.sidebar:
 
 st.divider()
 
-st.header(":material/info: How to use", anchor=False)
-st.markdown(
-f"""
-You can use this Browser page to discover and search amongst all the {len(tfclasses_df)} TFs available on disk, which are :primary[listed above in the table].
-
-To narrow down your search, you may use the :primary[filters]. There are two types:
-1. :primary[**Basic search**]: Search for one specific TF, either by its **UniProt Accession**, **Genus number** or **Genus name**
-2. :primary[**Advanced search**]: List for all TFs which belong to a superclass/class/family/subfamily
-
-For each TF that you want to add to the Cart, click on the :primary[:material/check_box:] icon.
-
-The Cart is visible on the sidebar. You can do one of the following:
-- Select :primary[**1**] item in the Cart to :primary[**view its details**].
-- Click on :primary[**Explore patterns**] to explore the motifs occurring in all the TFs in the Cart.
-""")
+st.header(":material/help: Help", anchor=False)
+st.markdown(constants.CONTENT_HELP_TF_BROWSER)

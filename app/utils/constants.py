@@ -68,6 +68,9 @@ PATH_PAGE_PATTERN_EXPLORER = PATH_ROOT / "app/pattern_explorer.py"
 PATH_PAGE_ABOUT = PATH_ROOT / "app/about.py"
 """Path to the **About** page."""
 
+PATH_PAGE_HELP = PATH_ROOT / "app/about_help.py"
+"""Path to the **Help** page."""
+
 #endregion
 
 #region Dataset
@@ -114,4 +117,52 @@ PATH_DATA = PathData(ENV_DATASET_PATH_OVERRIDE or Path("./data/")) # initial val
 
 #endregion
 
+#region Content
+CONTENT_SUMMARY = f"""
+{APP_NAME} is an integrated database and visualization platform
+for transcription factors (TFs). It combines curated information from
+[UniProt](https://www.uniprot.org), [DisProt](https://disprot.org), and the
+[ELM Resource](http://elm.eu.org) with precomputed disorder predictions from
+[AIUPred](https://aiupred.elte.hu),
+[flDPnn](https://biomine.cs.vcu.edu/server-handler/?type=servers&target=flDPnn),
+and [Metapredict v3](https://metapredict.net). {APP_NAME} lets users
+explore known functional motifs in sequence context, examine their
+distribution within DNA-binding and activation domains, identify shared
+motifs across TF sets, and investigate relationships between motif occurrence
+and intrinsic disorder.
+"""
 
+CONTENT_CONTACT = f"""
+For inquiries, feedback, or contributions, please reach out to us at
+[debostuti@dubai.bits-pilani.ac.in](mailto:debostuti@dubai.bits-pilani.ac.in)
+or make an [issue on GitHub](https://github.com/tf-disco/tf-disco/issues).
+We welcome your input and look forward to hearing from you!
+"""
+
+CONTENT_HELP_TF_BROWSER = f"""
+You can use the :primary[:material/view_list: TF Browser] page to discover and search amongst all the TFs
+available, which are :primary[listed in the table].
+
+To narrow down a search, you can apply :primary[filters]. There are *two* types:
+1. :primary[**Basic search**]: Search for one specific TF, either by its **UniProt Accession**, **Genus number** or **Genus name**
+2. :primary[**Advanced search**]: List for all TFs which belong to a superclass/class/family/subfamily (refer to the [TFClass Resource](http://tfclass.bioinf.med.uni-goettingen.de/index.jsf) for details on TF classification)
+
+For each TF that you want to add to the Cart, click on the :primary[:material/check_box:] icon.
+
+Once TFs are selected, the Cart will be visible on the sidebar and you can do one of the following:
+- Select :primary[**1**] item in the Cart to :primary[**view its details**].
+- Click on the :primary[:material/regular_expression: **Explore patterns**] button to explore the motifs occurring in all the TFs in the Cart.
+"""
+
+CONTENT_HELP_PATTERN_EXPLORER = f"""
+Shows patterns found across the TFs in your cart (or across the whole database).
+Filter to patterns common to all cart TFs, and adjust the vagueness penalty slider to prioritize more specific patterns. Select a pattern to see its regex, a consensus sequence logo, every matching sequence, and how often it occurs in each TF.
+"""
+
+CONTENT_DEVS = """
+Website developed by:
+- Joseph Cijo ([GitHub](https://github.com/joejo-joestar), [LinkedIn](https://linkedin.com/in/joseph-cijo), [:material/mail:](mailto:joecn2704+tfdisco@gmail.com))
+- Sreenikethan Iyer ([GitHub](http://github.com/SreenikethanI), [LinkedIn](https://linkedin.com/in/sreenikethan-i), [:material/mail:](mailto:sreeni.s.iyer+tfdisco@gmail.com))
+"""
+
+#endregion

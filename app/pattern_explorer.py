@@ -18,11 +18,12 @@ st.set_page_config(
 
 st.html(f"""
 <h1 align="center" style="font-size: 48px;">
+    Pattern Explorer |
     <img src="{constants.ASSET_LOGO_DATAURI}" alt="" width="64" height="64"/>
-    Pattern Explorer | {constants.APP_NAME}
+    {constants.APP_NAME}
 </h1>
 """)
-st.caption("Explore and analyze transcription factor patterns", text_alignment="center")
+st.caption("Explore and analyze patterns occuring in TFs", text_alignment="center")
 
 with st.sidebar:
     st.empty()
@@ -50,9 +51,9 @@ cart: set[str] = st.session_state["cart"]
 is_cart_empty = (len(cart) < 1)
 
 with st.sidebar:
-    st.page_link(constants.PATH_PAGE_TF_BROWSER, label=":primary[Go to TF Browser]", icon=":material/arrow_back:", icon_position="left")
+    st.page_link(constants.PATH_PAGE_TF_BROWSER, label="Go to :primary[:material/view_list: TF Browser]", icon=":material/arrow_back:", icon_position="left")
 
-    st.header(f":material/shopping_cart: Cart contents (`{len(cart)}` TF{'s' if len(cart) != 1 else ''})", anchor=False)
+    st.header(f":material/shopping_cart: Cart contents (:primary[**{len(cart)}**] TF{'s' if len(cart) != 1 else ''})", anchor=False)
 
     filt_to_cart = st.toggle("Filter to Cart items only", value=(not is_cart_empty), help="Only show patterns that occur in the TFs currently in the cart.", disabled=is_cart_empty)
 
@@ -112,9 +113,9 @@ with st.expander(f"Select Patterns", expanded=True):
     score_max = patterns_df["Log2FC"].max()
 
     if filt_to_cart or strictly_in_all_tfs:
-        st.write(f"Displaying `{len(patterns_df)}` out of `{patterns_count_total}` patterns:")
+        st.write(f"Displaying :primary[**{len(patterns_df)}**] out of :primary[**{patterns_count_total}**] patterns:")
     else:
-        st.write(f"Displaying `{patterns_count_total}` patterns:")
+        st.write(f"Displaying :primary[**{patterns_count_total}**] patterns:")
 
     display_columns = {
         "ELM_Acc": "ELM Accession",
@@ -162,12 +163,17 @@ with st.expander(f"Select Patterns", expanded=True):
     #endregion
 
 st.divider()
-st.header(":material/regular_expression: Selected pattern", anchor=False)
 
 if patterns__sel_row is None:
     st.warning("No pattern selected. Please select a pattern from the table above to see details here.")
 
+    st.divider()
+    st.header(":material/help: Help", anchor=False)
+    st.markdown(constants.CONTENT_HELP_PATTERN_EXPLORER)
+
 else:
+    st.header(":material/regular_expression: Selected pattern", anchor=False)
+
     #region Selected pattern: Overview
     selected_pattern_matches_df: pd.DataFrame = matches_df[matches_df["ELM_Acc"] == patterns__sel_elm_acc]
     selected_pattern_df = (selected_pattern_matches_df

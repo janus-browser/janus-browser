@@ -5,7 +5,8 @@ if __name__ == "__main__":
     print("Please import this as a module on the main Streamlit page (app.py).")
     exit()
 
-from typing import Literal, overload
+from random import randint
+from typing import Literal
 from collections import OrderedDict
 import re
 
@@ -216,5 +217,14 @@ def render_vagueness_penalty_slider(key: str|None=None):
         help="Vagueness is a measure of how specific a pattern is, with lower values indicating more specific patterns. A penalty may be applied to highly vague patterns.\n\nIncreasing this penalty allows you to focus on patterns that are more likely to be biologically meaningful.\n\nSet to 1.0 to not apply any penalty.\n\nNote that this is only used to rank the patterns for convenience purposes, and it doesn't affect the actual pattern matching.",
         key=key,
     )
+
+# ============================================================================ #
+
+def container_indent(*args, **kwargs):
+    """Render a st.container with an indent."""
+
+    key = f"{randint(1,100000)}"
+    st.html(f"<style>.st-key-{key} {{margin-left: 2em;}}</style>")
+    return st.container(*args, key=key, **kwargs)
 
 #endregion

@@ -14,7 +14,7 @@ st.html(f"""
 <h1 align="center" style="font-size: 48px;">
     Welcome to
     <img src="{constants.ASSET_LOGO_DATAURI}" alt="" width="64" height="64"/>
-    {constants.APP_NAME} Browser!
+    {constants.APP_NAME}!
 </h1>
 """)
 st.caption("A Consolidated database of Disorder, Patterns and Functional annotations of Transcription Factors", text_alignment="center")
@@ -70,8 +70,9 @@ with st.container(width="stretch", horizontal=False):
 st.write("Or, browse all available TFs:")
 st.page_link(
     constants.PATH_PAGE_TF_BROWSER,
-    label="TF Browser",
-    icon=":material/view_list:",
+    label="Go to :primary[:material/view_list: TF Browser]",
+    icon=":material/arrow_forward:",
+    icon_position="right",
 )
 
 #endregion
@@ -81,24 +82,14 @@ st.divider()
 #region Details
 st.header(f":material/info: What is {constants.APP_NAME}?", anchor=False)
 st.markdown(f"""
-    {constants.APP_NAME} is an integrated database and visualization platform
-    for transcription factors (TFs). It combines curated information from
-    [UniProt](https://www.uniprot.org), [DisProt](https://disprot.org), and the
-    [ELM Resource](http://elm.eu.org) with precomputed disorder predictions from
-    [AIUPred](https://aiupred.elte.hu),
-    [flDPnn](https://biomine.cs.vcu.edu/server-handler/?type=servers&target=flDPnn),
-    and [Metapredict v3](https://metapredict.net). {constants.APP_NAME} enables
-    users to explore known functional motifs in sequence context, examine their
-    distribution within DNA-binding and activation domains, identify shared
-    motifs across TF sets, and investigate relationships between motif
-    occurrence and intrinsic disorder.
+{constants.CONTENT_SUMMARY}
 
-    Use the <a href="/tf_browser" target="_self" rel="noreferrer">Browser</a>
-    page to explore the available TFs and their characteristics, or jump
-    straight into the viewer for an in-depth look at a specific TF.
+Use the <a href="/tf_browser" target="_self" rel="noreferrer">TF Browser</a>
+page to explore the available TFs and their characteristics, or jump
+straight into the viewer for an in-depth look at a specific TF.
 
-    More details can be found in the <a href="/about" target="_self"
-    rel="noreferrer">About</a> page.
+More details can be found in the <a href="/about" target="_self"
+rel="noreferrer">About</a> page.
 """, unsafe_allow_html=True)
 
 #endregion
@@ -107,10 +98,6 @@ st.divider()
 
 #region Contact
 st.header(":material/contact_mail: Contact", anchor=False)
-st.markdown("""
-    For inquiries, feedback, or contributions, please reach out to us at
-    [debostuti@dubai.bits-pilani.ac.in](mailto:debostuti@dubai.bits-pilani.ac.in). We welcome your input and
-    look forward to hearing from you!
-""")
+st.markdown(constants.CONTENT_CONTACT)
 
 #endregion
